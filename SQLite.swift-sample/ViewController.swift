@@ -117,6 +117,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             model.save()
         }
 
+        updateViewModel()
         tableView.reloadData()
     }
 }
