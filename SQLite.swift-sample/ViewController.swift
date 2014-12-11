@@ -110,11 +110,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
 
     @IBAction func addButtonTapped(sender: AnyObject) {
-        let count = Model.Storage.models.count
         for i in 0..<20 {
-            let model = Model(name: NSUUID().UUIDString)
-            model.unique = "unique \(count + i)"
-            model.save()
+            Factory.ModelFactory.create(children: 3)
         }
 
         updateViewModel()
