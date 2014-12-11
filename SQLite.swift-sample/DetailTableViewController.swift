@@ -50,6 +50,22 @@ class DetailTableViewController: UIViewController, UITableViewDataSource, UITabl
         return cell!
     }
 
+    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+        return true
+    }
+
+    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        if editingStyle == UITableViewCellEditingStyle.Delete {
+            if let model = modelAt(indexPath.row) {
+                if model.delete() > 0 {
+                    parentModel?._details = nil // quick hack to force model to reload children
+                    tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+                }
+            }
+        }
+    }
+
+
     func modelAt(index: Int) -> DetailModel? {
         return parentModel?.details[index]
     }

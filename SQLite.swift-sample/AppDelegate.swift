@@ -23,14 +23,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DetailModel.Storage.createTable()
         for i in 0...100 {
             Factory.ModelFactory.create(children: 5)
-//            model.unique = "unique \(i)"
-//            model.name = "name \(i)"
-//            model.save()
         }
-
-//        let m = Model(name: "name 12")
-//        let a = Model.Storage.models.filter(Model.Storage.name == m.name)
-
 
         return true
     }

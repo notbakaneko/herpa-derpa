@@ -111,10 +111,16 @@ class Model: Base {
 
     }
 
-    func delete() {
-        let rows = Storage.models.filter(Storage.id == id)
-        let count = rows.delete()?
-        debugPrintln("\(count) rows deleted")
+    func delete(cascade: Bool = true) -> Int? {
+        if cascade {
+            if let count = DetailModel.Storage.models.filter(DetailModel.Storage.modelId == id).delete()? {
+                debugPrintln("id: \(id), \(count) nested rows deleted")
+            }
+        }
+
+        let count = Storage.models.filter(Storage.id == id).delete()?
+        debugPrintln("id: \(id), \(count) rows deleted")
+        return count
     }
 }
 
@@ -156,6 +162,12 @@ class DetailModel: Base {
                 debugPrintln(insertedId)
                 id = insertedId
         }
+    }
+
+    func delete(cascade: Bool = true) -> Int? {
+        let count = Storage.models.filter(Storage.id == id).delete()?
+        debugPrintln("id: \(id), \(count) rows deleted")
+        return count
     }
 }
 

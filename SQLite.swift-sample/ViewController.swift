@@ -11,6 +11,7 @@ import SQLite
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     @IBOutlet weak var tableView: UITableView!
+    var viewModels: [Model]?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,14 +49,23 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return cell!
     }
 
-    func modelAt(index: Int) -> Model? {
-        let query = Model.Storage.models.filter(Model.Storage.id == index+1)
-        if let row = query.first {
+    func updateViewModel() {
+        let query = Model.Storage.models
+        var array = [Model]()
+        for row in query {
             let model = row.map() as Model
-            return model
+            array.append(model)
         }
 
-        return nil
+        viewModels = array
+    }
+
+    func modelAt(index: Int) -> Model? {
+        if viewModels == nil {
+            updateViewModel()
+        }
+
+        return viewModels?[index]
     }
 
     func tableView(tableView: UITableView, accessoryButtonTappedForRowWithIndexPath indexPath: NSIndexPath) {
@@ -64,6 +74,23 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         performSegueWithIdentifier("showDetail", sender: indexPath)
+    }
+
+    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+        return true
+    }
+
+    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        if editingStyle == UITableViewCellEditingStyle.Delete {
+            if let model = modelAt(indexPath.row) {
+                if model.delete() > 0 {
+                    viewModels?.removeAtIndex(indexPath.row)
+                    tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+//                    updateViewModel()
+//                    tableView.reloadData()
+                }
+            }
+        }
     }
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
@@ -80,7 +107,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             }
         }
     }
-
 
 
     @IBAction func addButtonTapped(sender: AnyObject) {
