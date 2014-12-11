@@ -7,8 +7,10 @@
 //
 
 import UIKit
+import SQLite
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+    @IBOutlet weak var tableView: UITableView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -20,6 +22,76 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
+    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+        return 1
+    }
 
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return Model.Storage.models.count
+    }
+
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        var cell: UITableViewCell?
+        cell = tableView.dequeueReusableCellWithIdentifier("TableViewCell") as? UITableViewCell
+        if cell == nil {
+            cell = UITableViewCell(style: .Default, reuseIdentifier: "TableViewCell")
+        }
+
+        if let model = modelAt(indexPath.row) {
+            cell?.detailTextLabel?.text = "id: \(model.id), unique: \(model.unique)"
+            cell?.textLabel?.text = model.name
+        } else {
+            cell?.detailTextLabel?.text = nil
+            cell?.textLabel?.text = nil
+        }
+
+        return cell!
+    }
+
+    func modelAt(index: Int) -> Model? {
+        let query = Model.Storage.models.filter(Model.Storage.id == index+1)
+        if let row = query.first {
+            let model = row.map() as Model
+            return model
+        }
+
+        return nil
+    }
+
+    func tableView(tableView: UITableView, accessoryButtonTappedForRowWithIndexPath indexPath: NSIndexPath) {
+
+    }
+
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        performSegueWithIdentifier("showDetail", sender: indexPath)
+    }
+
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        if let identifier = segue.identifier {
+            switch identifier {
+            case "showDetail":
+                if let indexPath = sender as? NSIndexPath {
+                    let destination = segue.destinationViewController as DetailTableViewController
+                    destination.parentModel = modelAt(indexPath.row)
+                }
+                break
+            default:
+                break
+            }
+        }
+    }
+
+
+
+    @IBAction func addButtonTapped(sender: AnyObject) {
+        let count = Model.Storage.models.count
+        for i in 0..<20 {
+            let model = Model(name: NSUUID().UUIDString)
+            model.unique = "unique \(count + i)"
+            model.save()
+        }
+
+        tableView.reloadData()
+    }
 }
 

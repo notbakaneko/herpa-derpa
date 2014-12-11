@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import SQLite
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -16,6 +17,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
+
+        // create random data
+        Model.Storage.createTable()
+        DetailModel.Storage.createTable()
+        for i in 0...100 {
+            Factory.ModelFactory.create(children: 5)
+//            model.unique = "unique \(i)"
+//            model.name = "name \(i)"
+//            model.save()
+        }
+
+//        let m = Model(name: "name 12")
+//        let a = Model.Storage.models.filter(Model.Storage.name == m.name)
+
+
         return true
     }
 
