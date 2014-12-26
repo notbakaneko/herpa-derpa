@@ -13,105 +13,77 @@ import SQLite
 let db = Database()
 
 protocol ModelType {
+    init()
     init(row: Row)
+}
 
+protocol RecordType {
     func save()
     func delete(#cascade: Bool) -> Int?
     func delete() -> Int?
 }
 
-protocol GenericModelType: ModelType {
-    typealias T
-}
 
-class Base: GenericModelType {
-    typealias T = Base
-    typealias PrimaryKeyType = Int
+class Association<T: ModelType> : SequenceType {
+    let uuid = NSUUID()
+    typealias Generator = IndexingGenerator<[T]>
+    lazy var array: [T] = self.reload()
 
-    var primaryKeyValue: PrimaryKeyType {
-        assert(1 == 0, "Must override")
-        return 0
+    var query: SQLite.Query
+    var count: Int { return array.count }
+
+    init(query: SQLite.Query) {
+        self.query = query
     }
 
-    init () {}
-
-    required init(row: Row) {
-
+    func reload() -> [T] {
+        debugPrintln("reloading association \(uuid)")
+        array = query.map() as [T]
+        return array
     }
 
-    func save() {
-        if primaryKeyValue > 0 {
-            _update()
-        } else {
-            _insert()
+    func generate() -> Generator {
+        return array.generate()
+    }
+
+    subscript(index: Int) -> T {
+        get {
+            return array[index]
         }
-
-        _cascadingUpdate()
-    }
-
-    func delete(#cascade: Bool) -> Int? {
-        if cascade {
-            _cascadingDelete()
+        set {
+            array[index] = newValue
         }
-
-        return _delete()
     }
 
-    func delete() -> Int? {
-        return delete(cascade: true)
+    func append(newElement: T) {
+        array.append(newElement)
+
     }
 
-
-    // MARK:- implementation
-    func _update() {
-        assert(1 == 0, "Must override")
-    }
-
-    func _insert() {
-        assert(1 == 0, "Must override")
-    }
-
-    func _cascadingUpdate() {
-//        assert(1 == 0, "Must override")
-    }
-
-    func _delete() -> Int? {
-        assert(1 == 0, "Must override")
-    }
-
-    func _cascadingDelete() -> Int? {
-//        assert(1 == 0, "Must override")
-        return 0
+    func extend(newElements: [T]) {
+        array.extend(newElements)
     }
 }
 
-class Model: Base {
+
+class Model: ModelType, RecordType {
     typealias T = Model
-    typealias PrimaryKeyType = Int
-    override var primaryKeyValue: PrimaryKeyType {
-        return id
-    }
+    var dirty = false
 
     var id = 0
     var name: String
     var unique: String = ""
     var optional: String?
-    var _details: [DetailModel]?
-    var details: [DetailModel] {
-        get {
-            if (_details != nil) {
-                return _details!
-            }
+    lazy var details: Association<DetailModel> = {
+        return Association<DetailModel>(query: DetailModel.Storage.models.filter(DetailModel.Storage.modelId == self.id))
+    }()
 
-            let query = DetailModel.Storage.models.filter(DetailModel.Storage.modelId == id)
-            _details = query.map()
-            return _details!
-        }
+    required convenience init() {
+        self.init(name: "")
     }
 
     init(name: String) {
         self.name = name
-        super.init()
     }
 
     required init(row: Row) {
@@ -119,7 +91,6 @@ class Model: Base {
         self.name = row[Storage.name]
         self.unique = row[Storage.unique]
         self.optional = row[Storage.optional]
-        super.init()
     }
 
 
@@ -139,10 +110,23 @@ class Model: Base {
                 t.column(self.optional)
             }
         }
+
+        static func dropTable() {
+            db.drop(table: models, ifExists: true)
+        }
     }
 
+    func save() {
+        if id > 0 {
+            update()
+        } else {
+            insert()
+        }
 
-    override func _update() {
+        cascadingUpdate()
+    }
+
+    func update() {
         if let result = Storage.models.filter(Storage.id == id).update(
             Storage.name <- name,
             Storage.unique <- unique,
@@ -151,7 +135,7 @@ class Model: Base {
         }
     }
 
-    override func _insert() {
+    func insert() {
         if let insertedId = Storage.models.insert(
             Storage.name <- name,
             Storage.unique <- unique,
@@ -163,22 +147,31 @@ class Model: Base {
         }
     }
 
-    override func _cascadingUpdate() {
-        if let details = _details {
+    func cascadingUpdate() {
+//        if let details = _details {
             for detail in details {
                 detail.modelId = id
                 detail.save()
             }
-        }
+//        }
     }
 
-    override func _delete() -> Int? {
+
+    func delete() -> Int? {
+        return delete(cascade: true)
+    }
+
+    func delete(#cascade: Bool) -> Int? {
+        if cascade {
+            cascadingDelete()
+        }
+
         let count = Storage.models.filter(Storage.id == id).delete()?
         debugPrintln("id: \(id), \(count) rows deleted")
         return count
     }
 
-    override func _cascadingDelete() -> Int? {
+    func cascadingDelete() -> Int? {
         if let count = DetailModel.Storage.models.filter(DetailModel.Storage.modelId == id).delete()? {
             debugPrintln("id: \(id), \(count) nested rows deleted")
             return count
@@ -189,24 +182,18 @@ class Model: Base {
 }
 
 
-class DetailModel: Base {
+class DetailModel: ModelType, RecordType {
     typealias T = DetailModel
-    typealias PrimaryKeyType = Int
-    override var primaryKeyValue: PrimaryKeyType {
-        return id
-    }
 
     var id = 0
     var modelId = 0
 
-    override init() {
-        super.init()
-    }
+
+    required init() {}
 
     required init(row: Row) {
         self.id = row[Storage.id]
         self.modelId = row[Storage.modelId]
-        super.init()
     }
 
 
@@ -222,9 +209,21 @@ class DetailModel: Base {
                 t.column(self.modelId)
             }
         }
+
+        static func dropTable() {
+            db.drop(table: models, ifExists: true)
+        }
     }
 
-    override func _insert() {
+    func save() {
+        if id > 0 {
+            update()
+        } else {
+            insert()
+        }
+    }
+
+    func insert() {
         if let insertedId = Storage.models.insert(
             Storage.modelId <- modelId) {
                 debugPrintln(insertedId)
@@ -232,14 +231,18 @@ class DetailModel: Base {
         }
     }
 
-    override func _update() {
+    func update() {
         if let result = Storage.models.filter(Storage.id == id).update(
             Storage.modelId <- modelId) {
                 debugPrintln(result)
         }
     }
 
-    override func _delete() -> Int? {
+    func delete() -> Int? {
+        return delete(cascade: true)
+    }
+
+    func delete(#cascade: Bool) -> Int? {
         let count = Storage.models.filter(Storage.id == id).delete()?
         debugPrintln("id: \(id), \(count) rows deleted")
         return count

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		ED172CB81A3FE68E002D178F /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED251BF01A36EC1F0016F1A5 /* Model.swift */; };
+		ED172CBC1A3FE691002D178F /* Factory.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED9700F71A39844200214CE6 /* Factory.swift */; };
 		ED251BF11A36EC1F0016F1A5 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED251BF01A36EC1F0016F1A5 /* Model.swift */; };
 		ED9700F81A39844200214CE6 /* Factory.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED9700F71A39844200214CE6 /* Factory.swift */; };
 		ED9700FD1A3988DF00214CE6 /* DetailTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED9700FC1A3988DF00214CE6 /* DetailTableViewController.swift */; };
@@ -237,10 +239,14 @@
 				TargetAttributes = {
 					EDA1E5451A36E972001B459B = {
 						CreatedOnToolsVersion = 6.1.1;
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 0;
+							};
+						};
 					};
 					EDA1E55A1A36E973001B459B = {
 						CreatedOnToolsVersion = 6.1.1;
-						TestTargetID = EDA1E5451A36E972001B459B;
 					};
 				};
 			};
@@ -338,6 +344,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				EDA1E5621A36E973001B459B /* SQLite_swift_sampleTests.swift in Sources */,
+				ED172CB81A3FE68E002D178F /* Model.swift in Sources */,
+				ED172CBC1A3FE691002D178F /* Factory.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -480,7 +488,6 @@
 		EDA1E5691A36E973001B459B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -492,14 +499,12 @@
 				INFOPLIST_FILE = "SQLite.swift-sampleTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SQLite.swift-sample.app/SQLite.swift-sample";
 			};
 			name = Debug;
 		};
 		EDA1E56A1A36E973001B459B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -507,7 +512,6 @@
 				INFOPLIST_FILE = "SQLite.swift-sampleTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SQLite.swift-sample.app/SQLite.swift-sample";
 			};
 			name = Release;
 		};

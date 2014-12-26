@@ -21,13 +21,16 @@ struct Factory {
             var model = Model(name: NSUUID().UUIDString)
             model.unique = NSDate().timeIntervalSince1970.description
             model.save()
-            var array = [DetailModel]()
-            for i in 0..<count {
-                array.append(DetailModelFactory.create(model.id))
-            }
 
-            model._details = array
-            model.save()
+            if (count > 0) {
+                var array = [DetailModel]()
+                for i in 0..<count {
+                    array.append(DetailModelFactory.create(model.id))
+                }
+
+                model.details.array = array
+                model.save()
+            }
 
             return model
         }

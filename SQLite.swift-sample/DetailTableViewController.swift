@@ -28,7 +28,7 @@ class DetailTableViewController: UIViewController, UITableViewDataSource, UITabl
     }
 
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let count = parentModel?.details.count
+        let count = parentModel?.details.array.count
         return count ?? 0
     }
 
@@ -58,7 +58,8 @@ class DetailTableViewController: UIViewController, UITableViewDataSource, UITabl
         if editingStyle == UITableViewCellEditingStyle.Delete {
             if let model = modelAt(indexPath.row) {
                 if model.delete() > 0 {
-                    parentModel?._details = nil // quick hack to force model to reload children
+//                    parentModel?._details = nil // quick hack to force model to reload children
+                    parentModel?.details.reload()
                     tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
                 }
             }
@@ -67,6 +68,6 @@ class DetailTableViewController: UIViewController, UITableViewDataSource, UITabl
 
 
     func modelAt(index: Int) -> DetailModel? {
-        return parentModel?.details[index]
+        return parentModel?.details.array[index]
     }
 }

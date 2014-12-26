@@ -11,26 +11,58 @@ import XCTest
 
 class SQLite_swift_sampleTests: XCTestCase {
     
+    override class func setUp() {
+        super.setUp()
+    }
+
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-    
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
-    
-    func testExample() {
-        // This is an example of a functional test case.
-        XCTAssert(true, "Pass")
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measureBlock() {
-            // Put the code you want to measure the time of here.
+        Model.Storage.createTable()
+        DetailModel.Storage.createTable()
+
+        for i in 0...4 {
+            Factory.ModelFactory.create(children: 0)
         }
     }
-    
+
+    override func tearDown() {
+        super.tearDown()
+        Model.Storage.dropTable()
+        DetailModel.Storage.dropTable()
+    }
+
+
+    func test_association() {
+        if let row = Model.Storage.models.first? {
+            let model1 = row.map() as Model
+            let model2 = row.map() as Model
+            XCTAssertEqual(model1.details.array.count, 0)
+            XCTAssertEqual(model2.details.array.count, 0)
+
+            model1.details.array.append(Factory.DetailModelFactory.create())
+            model1.save()
+            XCTAssertEqual(model1.details.array.count, 1)
+            XCTAssertEqual(model2.details.array.count, 0)
+            model2.details.reload()
+            XCTAssertEqual(model1.details.array.count, 1)
+            XCTAssertEqual(model2.details.array.count, 1)
+        }
+    }
+
+    func test_association_wrappers() {
+        if let row = Model.Storage.models.first? {
+            let model1 = row.map() as Model
+            let model2 = row.map() as Model
+            XCTAssertEqual(model1.details.count, 0)
+            XCTAssertEqual(model2.details.count, 0)
+
+            model1.details.append(Factory.DetailModelFactory.create())
+            model1.save()
+            XCTAssertEqual(model1.details.count, 1)
+            XCTAssertEqual(model2.details.count, 0)
+            model2.details.reload()
+            XCTAssertEqual(model1.details.count, 1)
+            XCTAssertEqual(model2.details.count, 1)
+        }
+    }
 }
